@@ -28,6 +28,18 @@ help:
 	@grep -E '^([a-zA-Z0-9_-]+):.*?## .*$$' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  ${YELLOW}%-20s${NC} %s\n", $$1, $$2}'
 	@echo ""
 
+
+# -------- CHECK ENVIRONMENT --------
+.PHONY: check-env
+check-env: ## Check if environment is properly configured
+	@echo "${BLUE}Checking environment prerequisites...${NC}"
+	@command -v az >/dev/null 2>&1 || { echo "${YELLOW}❌ Azure CLI (az) is not installed. Please install it first.${NC}"; exit 1; }
+	@az account show >/dev/null 2>&1 || { echo "${YELLOW}❌ Not logged into Azure. Run 'az login' first.${NC}"; exit 1; }
+	@command -v ssh-keygen >/dev/null 2>&1 || { echo "${YELLOW}❌ ssh-keygen is not available.${NC}"; exit 1; }
+	@command -v scp >/dev/null 2>&1 || { echo "${YELLOW}❌ scp is not available.${NC}"; exit 1; }
+	@command -v ssh >/dev/null 2>&1 || { echo "${YELLOW}❌ ssh is not available.${NC}"; exit 1; }
+	@echo "${GREEN}✅ Environment looks good.${NC}"
+
 # -------- SSH KEY GENERATION --------
 keys: ## Generate a public/private key pair at defined path
 	@echo "${GREEN}Generating SSH key pair at ${KEY_PATH}...${NC}"
@@ -80,7 +92,7 @@ ssh-config: infra ## Add the VM to the SSH config file
 .PHONY: clean
 clean: ## Remove the generated key files
 	@echo "${YELLOW}Cleaning up key files...${NC}"
-	@rm -f $(KEY_PATH) $(KEY_PATH).pub
+	@rm -rf $(KEY_PATH)
 	@echo "${GREEN}Done.${NC}"
 
 	@echo "${YELLOW}Removing VM from SSH config...${NC}"
