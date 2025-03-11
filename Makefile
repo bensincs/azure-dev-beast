@@ -57,15 +57,9 @@ infra: rg keys ## Deploy infrastructure using the Bicep file
 		--parameters subnetName=$(SUBNET_NAME) \
 		--template-file $(BICEP_FILE)
 
-# -------- CONNECT TO VM --------
-.PHONY: connect
-connect: ## Connect to the VM using the generated SSH key
-	@echo "${GREEN}Connecting to the VM...${NC}"
-	@ssh -i $(KEY_PATH) $(USERNAME)@$(shell az vm show -d -g $(RESOURCE_GROUP) -n $(VM_NAME) --query publicIps -o tsv)
-
 # -------- CONFIGURE VM --------
 .PHONY: configure
-configure: ## Runs the ./configure.sh script on the vm
+configure: infra ## Runs the ./configure.sh script on the vm
 	@echo "${GREEN}Running configuration script on the VM...${NC}"
 	@scp -i $(KEY_PATH) ./configure.sh $(USERNAME)@$(shell az vm show -d -g $(RESOURCE_GROUP) -n $(VM_NAME) --query publicIps -o tsv):/tmp/configure.sh
 	@ssh -i $(KEY_PATH) $(USERNAME)@$(shell az vm show -d -g $(RESOURCE_GROUP) -n $(VM_NAME) --query publicIps -o tsv) 'bash /tmp/configure.sh'
@@ -73,7 +67,7 @@ configure: ## Runs the ./configure.sh script on the vm
 
 # -------- ADD TO SSH CONFIG --------
 .PHONY: ssh-config
-ssh-config: ## Add the VM to the SSH config file
+ssh-config: infra ## Add the VM to the SSH config file
 	@echo "${GREEN}Adding VM to SSH config...${NC}"
 	@echo "" >> ~/.ssh/config
 	@echo "Host $(VM_NAME)" >> ~/.ssh/config
@@ -87,6 +81,10 @@ ssh-config: ## Add the VM to the SSH config file
 clean: ## Remove the generated key files
 	@echo "${YELLOW}Cleaning up key files...${NC}"
 	@rm -f $(KEY_PATH) $(KEY_PATH).pub
+	@echo "${GREEN}Done.${NC}"
+
+	@echo "${YELLOW}Removing VM from SSH config...${NC}"
+	@sed -i '' '/Host $(VM_NAME)/,/^$$/d' ~/.ssh/config
 	@echo "${GREEN}Done.${NC}"
 
 # -------- DESTROY INFRASTRUCTURE --------

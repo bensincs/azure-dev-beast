@@ -111,7 +111,7 @@ ssh vm-beast
 
 ## 🧹 Cleanup
 
-Delete only the SSH keys:
+Clean the local files, including SSH keys and SSH config:
 
 ```bash
 make clean
