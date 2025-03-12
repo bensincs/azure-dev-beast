@@ -92,7 +92,7 @@ ssh-config: infra ## Add the VM to the SSH config file
 .PHONY: clean
 clean: ## Remove the generated key files
 	@echo "${YELLOW}Cleaning up key files...${NC}"
-	@rm -rf $(KEY_PATH)
+	@rm -rf ./keys
 	@echo "${GREEN}Done.${NC}"
 
 	@echo "${YELLOW}Removing VM from SSH config...${NC}"
